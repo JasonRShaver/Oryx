@@ -1,5 +1,8 @@
 FROM oryxdevms/build:latest
 
+RUN mkdir -p /tmp/tests/sampleApps
+COPY tests/SampleApps /tmp/tests/sampleApps
+
 # Following is a pattern that AppService currently uses
 RUN groupadd -g 1002 oryx_group
 RUN useradd -u 1001 -g oryx_group oryx_user

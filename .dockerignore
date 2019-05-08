@@ -9,3 +9,7 @@ src/github.com/
 pkg/
 bin/
 artifacts/
+
+# Do not ignore test sample apps as we require them
+# for building the build image for tests
+!tests/SampleApps
