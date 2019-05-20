@@ -10,9 +10,7 @@ jobs:
   steps:
   - template: _securityChecks.yml
 
-- job: Job_BuildTestImages
-  displayName: Build and Test Oryx Images
-  template: _integration.yml
+- template: _integration.yml
   parameters:
       isCIBuild: 'false'
 trigger: none
