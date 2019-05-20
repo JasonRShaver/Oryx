@@ -13,4 +13,5 @@ jobs:
 - template: _integration.yml
   parameters:
       isCIBuild: 'false'
+
 trigger: none
