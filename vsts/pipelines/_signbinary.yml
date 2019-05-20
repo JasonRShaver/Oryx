@@ -5,11 +5,15 @@ steps:
     ignoreDirectories: '$(Build.SourcesDirectory)/tests'
 
 - powershell: |
-   Write-Host "##vso[task.setvariable variable=SignType]real"
+   Write-Host "##vso[task.setvariable variable=SignType;isOutput=true]real"
+  name: setSignTypeVariable
   displayName: 'Set sign binary variable'
   condition: >
    and(in(variables['Build.Reason'], 'Schedule', 'Manual'), eq(variables['Build.DefinitionName'], 'Oryx-CI'), 
    or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'],'refs/heads/patch/' )))
+
+- script: echo $(setSignTypeVariable.SignType)
+    name: echosignvar
 
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 4.6.2'
