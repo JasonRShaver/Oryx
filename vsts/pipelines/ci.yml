@@ -24,7 +24,7 @@ jobs:
 
 - job: Job_BuildImage
   displayName: Build and Test Build Image
-  dependson: Job_SignBinaries
+  dependsOn: Job_SignBinaries
   condition: succeeded()
   pool:
     name: OryxLinux
