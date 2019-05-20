@@ -1,8 +1,13 @@
 parameters:
   ascName: OryxMCR
   acrName: oryxdevmcr.azurecr.io
+  pushToDockerHub: 'false'
 
 steps:
+- ${{ if eq(parameters.pushToDockerHub, 'true') }}:
+  - script: |
+      echo "##vso[task.setvariable variable=PushToDockerHub;]true"
+
 - script: |
     if [ "$(BuildBuildImages)" != "true" ] && [ "$(BuildRuntimeImages)" != "true" ] && [ "$(TestIntegration)" != "true" ]
     then
@@ -103,7 +108,9 @@ steps:
   inputs:
     type: InlineScript
     script: 'echo "success">$(Build.SourcesDirectory)/artifacts/$(Build.BuildNumber).txt'
-  condition: and(succeeded(), in(variables['Build.Reason'], 'Schedule', 'Manual'), eq(variables['Build.DefinitionName'], 'Oryx-CI'))
+  condition: >
+   and(eq(variables['Build.DefinitionName'], 'Oryx-CI'), in(variables['Build.Reason'], 'Schedule', 'Manual'),
+   or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'],'refs/heads/patch/' )))
 
 
 - task: CopyFiles@2
