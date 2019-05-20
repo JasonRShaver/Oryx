@@ -1,9 +1,11 @@
 parameters:
   isCIBuild: 'false'
+  jobDependsOn: ''
 
 jobs:
 - job: Job_BuildImage
   displayName: Build and Test Build Image
+  dependson: ${{ parameters.jobDependsOn }}
   condition: succeeded()
   pool:
     name: OryxLinux

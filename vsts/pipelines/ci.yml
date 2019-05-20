@@ -25,6 +25,6 @@ jobs:
 - template: _integration.yml
   parameters:
       isCIBuild: 'true'
-  dependsOn: Job_SignBinaries  
+      jobDependsOn: Job_SignBinaries  
 
 trigger: none
