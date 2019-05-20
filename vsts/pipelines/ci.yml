@@ -22,12 +22,11 @@ jobs:
   steps:
   - template: _signbinary.yml
 
-- job: Job_BuildTestPushImages
-  displayName: Build and Test Oryx Images and Push to image registry
-  dependsOn: Job_SignBinaries
-  condition: succeeded()
-  template: _integration.yml
+- template: _integration.yml
   parameters:
       isCIBuild: 'true'
+  dependsOn: Job_SignBinaries
+  condition: succeeded()
+  
 
 trigger: none
