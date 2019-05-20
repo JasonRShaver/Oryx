@@ -13,7 +13,7 @@ steps:
    or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'],'refs/heads/patch/' )))
 
 - script: echo $(setSignTypeVariable.SignType)
-    name: echosignvar
+  name: echosignvar
 
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 4.6.2'
