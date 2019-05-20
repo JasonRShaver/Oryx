@@ -177,5 +177,3 @@ jobs:
     inputs:
       type: InlineScript
       script: 'echo "All integration tests ended"'
-
-trigger: none
