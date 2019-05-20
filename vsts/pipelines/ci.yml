@@ -1,14 +1,13 @@
 resources:
 - repo: self
 jobs:
-- template: _jobDependency.yml
-  parameters:
-    jobs: Job_SecurityCheck
-    displayName: Security
-    pool:
-      name: Hosted VS2017
-    steps:
-    - template: _securityChecks.yml
+- job: Job_Security
+  displayName: Security
+  condition: succeeded()
+  pool:
+    name: Hosted VS2017
+  steps:
+  - template: _securityChecks.yml
 
 - job: Job_SignBinaries
   displayName: Build and Sign Oryx Binaries
