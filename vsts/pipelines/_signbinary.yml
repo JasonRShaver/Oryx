@@ -12,7 +12,12 @@ steps:
    and(in(variables['Build.Reason'], 'Schedule', 'Manual'), eq(variables['Build.DefinitionName'], 'Oryx-CI'), 
    or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'],'refs/heads/patch/' )))
 
-- script: echo $(setSignTypeVariable.SignType)
+- script: |
+    echo $(setSignTypeVariable.SignType)
+    echo "********"
+    echo $(SignType)
+    echo "********"
+    echo "$SignType"
   name: echosignvar
 
 - task: NuGetToolInstaller@0
