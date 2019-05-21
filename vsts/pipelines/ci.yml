@@ -67,6 +67,6 @@ jobs:
     parameters:
       pushToDockerHub: 'true'
 
-- template: _integration.yml
+- template: templates/_integration.yml
 
 trigger: none
