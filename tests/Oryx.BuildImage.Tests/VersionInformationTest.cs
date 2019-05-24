@@ -27,12 +27,17 @@ namespace Microsoft.Oryx.BuildImage.Tests
         }
 
         [SkippableFact]
-        public void OryxBuildImage_Contains_VersionAndCommit_Information()
+        public void OryxBuildImage_Contains_VersionCommitAndSign_Information()
         {
             var agentOS = Environment.GetEnvironmentVariable("AGENT_OS");
             var gitCommitID = Environment.GetEnvironmentVariable("BUILD_SOURCEVERSION");
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER");
             var expectedOryxVersion = string.Concat(Settings.OryxVersion, buildNumber);
+            var signLogFile = "sign-" + buildNumber + ".log";
+            var script = new ShellScriptBuilder()
+                .AddCommand($"oryx --version")
+                .AddFileExistsCheck($"/opt/buildscriptgen/{signLogFile}")
+                .ToString();
 
             // we cant always rely on gitcommitid as env variable in case build context is not correctly passed
             // so we should check agent_os environment variable to know if the test is happening in azure devops agent 
@@ -43,8 +48,8 @@ namespace Microsoft.Oryx.BuildImage.Tests
             var result = _dockerCli.Run(new DockerRunArguments
             {
                 ImageId = Settings.BuildImageName,
-                CommandToExecuteOnRun = "oryx",
-                CommandArguments = new[] { "--version" }
+                CommandToExecuteOnRun = "/bin/bash",
+                CommandArguments = new[] { "-c", script }
             });
 
             // Assert

@@ -61,6 +61,15 @@ steps:
     CleanTargetFolder: true
   condition: and(succeeded(), eq(variables['setSignTypeVariable.SignType'], 'real'))
 
+- powershell: |
+   Write-Host "Creating a notifier log file to notify successful signing"
+   $signLogFilePath="$(Build.ArtifactStagingDirectory)\binaries\sign-$env:BUILD_BUILDNUMBER.log"
+   echo $signLogFilePath
+   echo "Digitally Signed by Microsoft" | Out-File -FilePath $signLogFilePath
+   Get-Content -Path $signLogFilePath
+  displayName: 'Create a notifier log file to notify successful signing'
+  condition: and(succeeded(), eq(variables['setSignTypeVariable.SignType'], 'real'))
+
 - task: PublishPipelineArtifact@0
   displayName: 'Publish Pipeline Artifact'
   inputs:
