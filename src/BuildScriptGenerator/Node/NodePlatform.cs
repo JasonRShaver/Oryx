@@ -60,7 +60,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Node
 
         public BuildScriptSnippet GenerateBashBuildScriptSnippet(BuildScriptGeneratorContext context)
         {
-            var buildProperties = new Dictionary<string, string>();
+            var manifestFileProperties = new Dictionary<string, string>();
 
             var packageJson = GetPackageJsonObject(context.SourceRepo, _logger);
             string runBuildCommand = null;
@@ -125,7 +125,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Node
 
             if (!string.IsNullOrWhiteSpace(compressedNodeModulesFileName))
             {
-                buildProperties[NodeConstants.NodeModulesFileBuildProperty] = compressedNodeModulesFileName;
+                manifestFileProperties[NodeConstants.NodeModulesFileBuildProperty] = compressedNodeModulesFileName;
             }
 
             bool pruneDevDependencies = ShouldPruneDevDependencies(context);
@@ -142,7 +142,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Node
                     " --save ",
                     NodeConstants.NodeAppInsightsPackageName);
 
-                buildProperties[NodeConstants.InjectedAppInsights] = true.ToString();
+                manifestFileProperties[NodeConstants.InjectedAppInsights] = true.ToString();
                 _logger.LogInformation("Oryx setting up Application Insights for auto-collection telemetry... ");
             }
 
@@ -168,7 +168,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Node
             return new BuildScriptSnippet
             {
                 BashBuildScriptSnippet = script,
-                BuildProperties = buildProperties
+                BuildProperties = manifestFileProperties
             };
         }
 

@@ -118,3 +118,13 @@
     - type: csharp
       directory: tests/Oryx.Tests.Common
       namespace: Microsoft.Oryx.Tests.Common
+- name: NodeManifestFileKeys
+  constants:
+    CompressedNodeModulesFile: compressedNodeModulesFile
+    InjectedAppInsights: injectedAppInsights
+  outputs:
+    - type: csharp
+      directory: src/BuildScriptGenerator/Node
+      namespace: Microsoft.Oryx.BuildScriptGenerator.Node
+    - type: go
+      directory: src/startupscriptgenerator/node/nodeConsts

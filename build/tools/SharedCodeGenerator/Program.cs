@@ -63,7 +63,11 @@ namespace Microsoft.Oryx.SharedCodeGenerator
                 {
                     IOutputFile output = OutputFactory.CreateByType(outputInfo, col);
                     string filePath = Path.Combine(outputBasePath, output.GetPath());
-                    using (StreamWriter writer = new StreamWriter(filePath))
+
+                    // Ensure directory exists
+                    var directory = new FileInfo(filePath).Directory;
+                    Directory.CreateDirectory(directory.FullName);
+                    using (var writer = new StreamWriter(filePath))
                     {
                         Console.WriteLine("Writing file '{0}'", filePath);
                         writer.Write(output.GetContent());

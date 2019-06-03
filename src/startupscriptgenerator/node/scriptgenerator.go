@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"startupscriptgenerator/common"
 	"startupscriptgenerator/common/consts"
+	"startupscriptgenerator/node/nodeConsts"
 	"strings"
 )
 
