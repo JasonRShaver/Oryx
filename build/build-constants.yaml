@@ -118,13 +118,46 @@
     - type: csharp
       directory: tests/Oryx.Tests.Common
       namespace: Microsoft.Oryx.Tests.Common
-- name: NodeManifestFileKeys
+- name: manifest-file-keys
   constants:
-    CompressedNodeModulesFile: compressedNodeModulesFile
-    InjectedAppInsights: injectedAppInsights
+    operation-id: operationId
+  outputs:
+    - type: csharp
+      directory: src/BuildScriptGenerator/Common
+      namespace: Microsoft.Oryx.BuildScriptGenerator.Common
+    - type: go
+      package: manifestFileKeys
+      directory: src/startupscriptgenerator/common/consts
+- name: node-manifest-file-keys
+  constants:
+    compressed-node-modules-file: compressedNodeModulesFile
+    injected-app-insights: injectedAppInsights
   outputs:
     - type: csharp
       directory: src/BuildScriptGenerator/Node
       namespace: Microsoft.Oryx.BuildScriptGenerator.Node
     - type: go
-      directory: src/startupscriptgenerator/node/nodeConsts
+      package: nodeManifestFileKeys
+      directory: src/startupscriptgenerator/node/consts
+- name: python-manifest-file-keys
+  constants:
+    compressed-virtual-env-file: compressedVirtualEnvFile
+    virtual-env-name: virtualEnvName
+    package-dir: packagedir
+  outputs:
+    - type: csharp
+      directory: src/BuildScriptGenerator/Python
+      namespace: Microsoft.Oryx.BuildScriptGenerator.Python
+    - type: go
+      package: pythonManifestFileKeys
+      directory: src/startupscriptgenerator/python/consts
+- name: dot-net-core-manifest-file-keys
+  constants:
+    zip-all-output: zipAllOutput
+  outputs:
+    - type: csharp
+      directory: src/BuildScriptGenerator/DotNetCore
+      namespace: Microsoft.Oryx.BuildScriptGenerator.DotNetCore
+    - type: go
+      package: dotNetCoreManifestFileKeys
+      directory: src/startupscriptgenerator/dotnetcore/consts

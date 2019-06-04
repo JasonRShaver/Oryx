@@ -3,7 +3,7 @@
 // Licensed under the MIT license.
 // --------------------------------------------------------------------------------------------
 
-package main
+package node
 
 import (
 	"encoding/json"
@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"startupscriptgenerator/common"
 	"startupscriptgenerator/common/consts"
-	"startupscriptgenerator/node/nodeConsts"
 	"strings"
 )
 
