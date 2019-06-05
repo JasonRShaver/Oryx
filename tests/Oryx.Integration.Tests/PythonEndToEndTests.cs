@@ -32,7 +32,7 @@ namespace Microsoft.Oryx.Integration.Tests
         }
 
         protected DockerVolume CreateAppVolume(string appName) =>
-            DockerVolume.CreateMirror(Path.Combine(_hostSamplesDir, "python", appName));
+            DockerVolume.Create(Path.Combine(_hostSamplesDir, "python", appName));
     }
 
     [Trait("category", "python")]
@@ -313,7 +313,7 @@ namespace Microsoft.Oryx.Integration.Tests
             var appDir = volume.ContainerDir;
             var appOutputDirPath = Directory.CreateDirectory(
                 Path.Combine(_tempRootDir, Guid.NewGuid().ToString("N"))).FullName;
-            var appOutputDirVolume = DockerVolume.CreateMirror(appOutputDirPath);
+            var appOutputDirVolume = DockerVolume.Create(appOutputDirPath);
             var appOutputDir = appOutputDirVolume.ContainerDir;
             var tempOutputDir = "/tmp/output";
             var buildScript = new ShellScriptBuilder()
@@ -406,7 +406,7 @@ namespace Microsoft.Oryx.Integration.Tests
             var volume = CreateAppVolume(appName);
             var appOutputDirPath = Directory.CreateDirectory(
                 Path.Combine(_tempRootDir, Guid.NewGuid().ToString("N"))).FullName;
-            var appOutputDirVolume = DockerVolume.CreateMirror(appOutputDirPath);
+            var appOutputDirVolume = DockerVolume.Create(appOutputDirPath);
             var appOutputDir = appOutputDirVolume.ContainerDir;
             var appDir = volume.ContainerDir;
             const string virtualEnvName = "antenv";
@@ -696,7 +696,7 @@ namespace Microsoft.Oryx.Integration.Tests
             // Arrange
             var appName = "reactdjango";
             var hostDir = Path.Combine(_hostSamplesDir, "multilanguage", appName);
-            var volume = DockerVolume.CreateMirror(hostDir);
+            var volume = DockerVolume.Create(hostDir);
             var appDir = volume.ContainerDir;
 
             var buildScript = new ShellScriptBuilder()

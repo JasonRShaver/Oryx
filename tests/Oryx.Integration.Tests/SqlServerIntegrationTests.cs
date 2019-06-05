@@ -41,7 +41,7 @@ namespace Microsoft.Oryx.Integration.Tests
             // Arrange
             var appName = "node-mssql";
             var hostDir = Path.Combine(_hostSamplesDir, "nodejs", appName);
-            var volume = DockerVolume.CreateMirror(hostDir);
+            var volume = DockerVolume.Create(hostDir);
             var appDir = volume.ContainerDir;
             var script = new ShellScriptBuilder()
                 .AddCommand($"oryx -appPath {appDir} -bindPort {ContainerPort}")
@@ -81,7 +81,7 @@ namespace Microsoft.Oryx.Integration.Tests
             // Arrange
             var appName = "mssqlserver-sample";
             var hostDir = Path.Combine(_hostSamplesDir, "python", appName);
-            var volume = DockerVolume.CreateMirror(hostDir);
+            var volume = DockerVolume.Create(hostDir);
             var appDir = volume.ContainerDir;
             var script = new ShellScriptBuilder()
                 .AddCommand($"oryx -appPath {appDir} -bindPort {ContainerPort}")
@@ -124,7 +124,7 @@ namespace Microsoft.Oryx.Integration.Tests
             // Arrange
             var appName = "sqlsrv-example";
             var hostDir = Path.Combine(_hostSamplesDir, "php", appName);
-            var volume = DockerVolume.CreateMirror(hostDir);
+            var volume = DockerVolume.Create(hostDir);
             var appDir = volume.ContainerDir;
             var script = new ShellScriptBuilder()
                 .AddCommand($"oryx -appPath {appDir} -bindPort {ContainerPort}")

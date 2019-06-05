@@ -48,12 +48,15 @@ namespace Microsoft.Oryx.Tests.Common
         public string ContainerDir { get; }
 
         /// <summary>
-        /// Creates a copy of a local directory, and returns a DockerVolume instance for mounting that copy in a
-        /// container.
+        /// Creates a copy of a local directory and returns a DockerVolume instance for mounting that copy in a container. 
         /// </summary>
         /// <param name="hostDir">local directory to be used in a container</param>
+        /// <param name="makeCopyBeforeMount">
+        /// if <c>true</c>, makes a copy of the host directory before mounting it.
+        /// Default is <c>true</c>.
+        /// </param>
         /// <returns>DockerVolume instance that can be used to mount the new copy of `originalDir`.</returns>
-        public static DockerVolume CreateMirror(string hostDir)
+        public static DockerVolume Create(string hostDir, bool makeCopyBeforeMount = true)
         {
             if (string.IsNullOrEmpty(hostDir))
             {
@@ -66,50 +69,53 @@ namespace Microsoft.Oryx.Tests.Common
             }
 
             var dirInfo = new DirectoryInfo(hostDir);
+            var writableHostDir = hostDir;
 
-            // Copy the host directory to a different location and mount that one as it's always possible that a
-            // single sample app could be tested by different tests and we do not want to modify its original state
-            // and also it would not be nice to see changes in git repository when running tests.
-
-            // Since Docker containers run as 'root' and any content written into the mounted directory is owned by
-            // the 'root', the CI agent which runs as a non-root account cannot delete that content, so we try to
-            // create content in a well known location on the CI agent so that these folders are deleted during the
-            // clean-up task.
-            var agentName = Environment.GetEnvironmentVariable(VstsAgentNameEnivronmentVariable);
-            string tempDirRoot = null;
-            if (string.IsNullOrEmpty(agentName))
+            if (makeCopyBeforeMount)
             {
-                // On dev machines, create the temporary folders underneath the 'bin' hierarchy itself. This way
-                // a user can clean those folders when they do 'git clean -xdf' on their source repo.
-                var fileInfo = new FileInfo(Assembly.GetExecutingAssembly().Location);
-                tempDirRoot = fileInfo.Directory.FullName;
-            }
-            else
-            {
-                // Put the folders in a well known location which the CI build definition looks for to clean up.
-                tempDirRoot = Path.Combine(Path.GetTempPath(), MountedHostDirRootName);
-            }
+                // Copy the host directory to a different location and mount that one as it's always possible that a
+                // single sample app could be tested by different tests and we do not want to modify its original state
+                // and also it would not be nice to see changes in git repository when running tests.
 
-            var writableHostDir = Path.Combine(
-                tempDirRoot,
-                Guid.NewGuid().ToString("N"),
-                dirInfo.Name);
-            CopyDirectories(hostDir, writableHostDir, copySubDirs: true);
+                // Since Docker containers run as 'root' and any content written into the mounted directory is owned by
+                // the 'root', the CI agent which runs as a non-root account cannot delete that content, so we try to
+                // create content in a well known location on the CI agent so that these folders are deleted during the
+                // clean-up task.
+                var agentName = Environment.GetEnvironmentVariable(VstsAgentNameEnivronmentVariable);
+                string tempDirRoot = null;
+                if (string.IsNullOrEmpty(agentName))
+                {
+                    // On dev machines, create the temporary folders underneath the 'bin' hierarchy itself. This way
+                    // a user can clean those folders when they do 'git clean -xdf' on their source repo.
+                    var fileInfo = new FileInfo(Assembly.GetExecutingAssembly().Location);
+                    tempDirRoot = fileInfo.Directory.FullName;
+                }
+                else
+                {
+                    // Put the folders in a well known location which the CI build definition looks for to clean up.
+                    tempDirRoot = Path.Combine(Path.GetTempPath(), MountedHostDirRootName);
+                }
 
-            // Grant permissions to the folder we just copied on the host machine. The permisions here allow the
-            // user(a non-root user) in the container to read/write/execute files.
-            var linuxOS = OSPlatform.Create("LINUX");
-            if (RuntimeInformation.IsOSPlatform(linuxOS))
-            {
-                ProcessHelper.RunProcess(
-                    "chmod",
-                    new[] { "-R", "777", writableHostDir },
-                    workingDirectory: null,
-                    waitTimeForExit: null);
+                writableHostDir = Path.Combine(
+                    tempDirRoot,
+                    Guid.NewGuid().ToString("N"),
+                    dirInfo.Name);
+                CopyDirectories(hostDir, writableHostDir, copySubDirs: true);
+
+                // Grant permissions to the folder we just copied on the host machine. The permisions here allow the
+                // user(a non-root user) in the container to read/write/execute files.
+                var linuxOS = OSPlatform.Create("LINUX");
+                if (RuntimeInformation.IsOSPlatform(linuxOS))
+                {
+                    ProcessHelper.RunProcess(
+                        "chmod",
+                        new[] { "-R", "777", writableHostDir },
+                        workingDirectory: null,
+                        waitTimeForExit: null);
+                }
             }
 
             var containerDirName = dirInfo.Name;
-
             // Note: Path.Combine is the ideal solution here but this would fail when we run the
             // tests on a windows machine (which most of us use).
             var containerDir = $"{ContainerDirRoot}/{containerDirName}";

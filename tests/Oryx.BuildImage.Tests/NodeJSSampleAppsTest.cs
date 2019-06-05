@@ -19,7 +19,7 @@ namespace Microsoft.Oryx.BuildImage.Tests
     {
         public static readonly string SampleAppName = "webfrontend";
 
-        public DockerVolume CreateWebFrontEndVolume() => DockerVolume.CreateMirror(
+        public DockerVolume CreateWebFrontEndVolume() => DockerVolume.Create(
             Path.Combine(_hostSamplesDir, "nodejs", SampleAppName));
 
         public NodeJSSampleAppsTestBase(ITestOutputHelper output) :
