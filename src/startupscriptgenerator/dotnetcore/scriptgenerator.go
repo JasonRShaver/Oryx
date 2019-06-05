@@ -36,7 +36,7 @@ func (gen *DotnetCoreStartupScriptGenerator) GenerateEntrypointScript(scriptBuil
 	defaultAppFileDir := filepath.Dir(gen.DefaultAppFilePath)
 
 	scriptBuilder.WriteString("readonly appPath=\"" + gen.RunFromPath + "\"\n")
-	scriptBuilder.WriteString("userStartUpCommand=\"" + gen.UserStartupCommand + "\"\n")
+	scriptBuilder.WriteString("userStartUpCommand=(" + gen.UserStartupCommand + ")\n")
 	scriptBuilder.WriteString("startUpCommand=\"\"\n")
 	scriptBuilder.WriteString("readonly defaultAppFileDir=\"" + defaultAppFileDir + "\"\n")
 	scriptBuilder.WriteString("readonly defaultAppFilePath=\"" + gen.DefaultAppFilePath + "\"\n")
@@ -53,42 +53,55 @@ isLinuxExecutable() {
 }
 
 cd "$appPath"
-if [ ! -z "$userStartUpCommand" ]; then
-	len=${#userStartUpCommand[@]}
-	if [ "$len" -eq "1" ]; then
+len=${#userStartUpCommand[@]}
+if [ $len -ne 0 ]; then
+	if [ $len -eq 1 ]; then
 		file="${userStartUpCommand[0]}"
 		if [ -f "$file" ]; then
-		  # The startup command could be for example: 'todoApp' or './todoApp'
-		  # So just extract the 'todoApp' part and prefix it with './' to be './todoApp'
-		  startUpCommand="./${file##*/}"
+			startUpCommand="${userStartUpCommand[@]}"
 		else
-		  echo "Could not find the startup file '$file' on disk."
+		  	echo "Could not find the startup file '$file' on disk."
 		fi
-	elif [ "$len" -eq "2" ] && [ "${userStartUpCommand[0]}" == "dotnet" ]; then
+	elif [ $len -eq 2 ] && [ "${userStartUpCommand[0]}" == "dotnet" ]; then
 		if [ -f "${userStartUpCommand[1]}" ]; then
-		  startUpCommand="$userStartUpCommand"
+		  	startUpCommand="${userStartUpCommand[@]}"
+		  	echo "Using the startup command '$startUpCommand' provided by the user to start the app."
 		else
-		  echo "Could not find the file '${userStartUpCommand[1]}' on disk."
+			echo "WARNING: Error in user provided startup command '${userStartUpCommand[@]}'."
+			echo "WARNING: Could not find the file '${userStartUpCommand[1]}' on disk."
 		fi
 	else
-		startUpCommand="$userStartUpCommand"
+		startUpCommand="${userStartUpCommand[@]}"
+		echo "Using the startup command '$startUpCommand' provided by the user to start the app."
 	fi
 fi
 
 if [ -z "$startUpCommand" ]; then
 	echo Finding the startup file name...
-	for file in *; do 
-		if [ -f "$file" ]; then 
+	runtimeConfigJsonFiles=()
+	for file in *; do
+		if [ -f "$file" ]; then
 			case $file in
-			*.runtimeconfig.json)
-				startupDllFileNamePrefix=${file%%.runtimeconfig.json}
-				startupExecutableFileName="$startupDllFileNamePrefix"
-				startupDllFileName="$startupDllFileNamePrefix.dll"
-				break
-			;;
+				*.runtimeconfig.json)
+					runtimeConfigJsonFiles+=("$file")
+				;;
 			esac
 		fi
 	done
+
+	fileCount=${#runtimeConfigJsonFiles[@]}
+	if [ $fileCount -eq 1 ]; then
+		file=${runtimeConfigJsonFiles[0]}
+		startupDllFileNamePrefix=${file%%.runtimeconfig.json}
+		startupExecutableFileName="$startupDllFileNamePrefix"
+		startupDllFileName="$startupDllFileNamePrefix.dll"
+	else
+		echo
+		echo "WARNING: Unable to find the startup dll file name."
+		echo "WARNING: Expected to find only one file with extension 'runtimeconfig.json' but found $fileCount"
+		echo "WARNING: Found files: ${runtimeConfigJsonFiles[@]}"
+		echo "WARNING: To fix this issue you can set the startup command to point to a particular startup file, for example: 'dotnet myapp.dll'"
+	fi
 
 	if [ -f "$startupExecutableFileName" ]; then
 		# Starting ASP.NET Core 3.0, an executable is created based on the platform where it is published from,
@@ -105,17 +118,23 @@ if [ -z "$startUpCommand" ]; then
 		fi
 	fi
 
-	if [ -z "$startUpCommand" ] && [ -f "$startupDllFileName" ]; then
+	if [ -z "$startUpCommand" ]; then
+		if [ -f "$startupDllFileName" ]; then
 			echo "Found the startup file '$startupDllFileName'"
 			startUpCommand="dotnet '$startupDllFileName'"
+		else
+			echo "Cound not find the startup dll file '$startupDllFileName'"
+		fi
 	fi
 fi
 
 if [ -z "$startUpCommand" ]; then
+	echo "Could not generate a startup command to start the app. Trying to use the default app instead..."
 	if [ -f "$defaultAppFilePath" ]; then
 		cd "$defaultAppFileDir"
 		startUpCommand="dotnet '$defaultAppFilePath'"
 	else
+		echo "Could not find the default app file '$defaultAppFilePath'"
 		echo Unable to start the application.
 		exit 1
 	fi
