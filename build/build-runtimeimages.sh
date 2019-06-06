@@ -30,9 +30,13 @@ function getTagName()
     fi
 
     local replacedPath="$RUNTIME_IMAGES_SRC_DIR/"
+    echo "replacedPath is: "$replacedPath
     local remainderPath="${1//$replacedPath/}"
+    echo "remainderpath is: "$remainderPath
+
     local slashChar="/"
-    getTagName_result=${remainderPath//$slashChar/"-"}
+    getTagName_result=${remainderPath//$slashChar/":"}
+    echo "getTagName_result is: "$getTagName_result
     return 0
 }
 
@@ -81,7 +85,7 @@ clearedOutput=false
 for dockerFile in $dockerFiles; do
     dockerFileDir=$(dirname "${dockerFile}")
     getTagName $dockerFileDir
-    localImageTagName="$DOCKER_RUNTIME_IMAGES_REPO/$getTagName_result:latest"
+    localImageTagName="$DOCKER_RUNTIME_IMAGES_REPO/$getTagName_result-latest"
     
     echo
     echo "Building image '$localImageTagName' for docker file located at '$dockerFile'..."
@@ -93,18 +97,17 @@ for dockerFile in $dockerFiles; do
         --build-arg AI_KEY=$APPLICATION_INSIGHTS_INSTRUMENTATION_KEY \
         $args $labels .
 
+    dockerHubRuntimeImageTagNameRepo="$DOCKER_RUNTIME_IMAGES_REPO/$getTagName_result"
+    acrRuntimeImageTagNameRepo="$ACR_RUNTIME_IMAGES_REPO/$getTagName_result"
     # Retag build image with DockerHub & ACR tags
     if [ -n "$BUILD_NUMBER" ]
     then
         uniqueTag="$BUILD_DEFINITIONNAME.$BUILD_NUMBER"
 
-        dockerHubRuntimeImageTagNameRepo="$DOCKER_RUNTIME_IMAGES_REPO/$getTagName_result"
-        acrRuntimeImageTagNameRepo="$ACR_RUNTIME_IMAGES_REPO/$getTagName_result"
-
-        docker tag "$localImageTagName" "$dockerHubRuntimeImageTagNameRepo:latest"
-        docker tag "$localImageTagName" "$dockerHubRuntimeImageTagNameRepo:$uniqueTag"
-        docker tag "$localImageTagName" "$acrRuntimeImageTagNameRepo:latest"
-        docker tag "$localImageTagName" "$acrRuntimeImageTagNameRepo:$uniqueTag"
+        docker tag "$localImageTagName" "$dockerHubRuntimeImageTagNameRepo-latest"
+        docker tag "$localImageTagName" "$dockerHubRuntimeImageTagNameRepo-$uniqueTag"
+        docker tag "$localImageTagName" "$acrRuntimeImageTagNameRepo-latest"
+        docker tag "$localImageTagName" "$acrRuntimeImageTagNameRepo-$uniqueTag"
 
         if [ $clearedOutput == "false" ]
         then
@@ -113,15 +116,15 @@ for dockerFile in $dockerFiles; do
             > $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
             clearedOutput=true
         fi
-
-        # add new content
-        echo
-        echo "Updating artifacts file with the built runtime image information..."
-        echo "$dockerHubRuntimeImageTagNameRepo:latest" >> $RUNTIME_IMAGES_ARTIFACTS_FILE
-        echo "$dockerHubRuntimeImageTagNameRepo:$uniqueTag" >> $RUNTIME_IMAGES_ARTIFACTS_FILE
-        echo "$acrRuntimeImageTagNameRepo:latest" >> $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
-        echo "$acrRuntimeImageTagNameRepo:$uniqueTag" >> $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
     fi
+
+    # add new content
+    echo
+    echo "Updating artifacts file with the built runtime image information..."
+    echo "$dockerHubRuntimeImageTagNameRepo:latest" >> $RUNTIME_IMAGES_ARTIFACTS_FILE
+    echo "$dockerHubRuntimeImageTagNameRepo:$uniqueTag" >> $RUNTIME_IMAGES_ARTIFACTS_FILE
+    echo "$acrRuntimeImageTagNameRepo:latest" >> $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
+    echo "$acrRuntimeImageTagNameRepo:$uniqueTag" >> $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
 
     cd $RUNTIME_IMAGES_SRC_DIR
 done

@@ -1,0 +1,131 @@
+parameters:
+  ascName: OryxMCR
+  acrName: oryxdevmcr.azurecr.io
+  acrProdName: oryxmcr.azurecr.io
+
+- script: |
+    if [ "$(BuildBuildImages)" != "true" ] && [ "$(BuildRuntimeImages)" != "true" ] && [ "$(TestIntegration)" != "true" ]
+    then
+      echo "Invalid configuration."
+      echo "Variable 'BuildBuildImages' or 'BuildRuntimeImages' needs to be 'true' to run this build."
+      exit 1
+    fi
+  displayName: 'Validate pipeline run'
+
+- checkout: self
+  clean: true
+
+- task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+  displayName: 'Component Detection - OSS Compliance'
+  inputs:
+    ignoreDirectories: '$(Build.SourcesDirectory)/tests'
+
+- task: Docker@1
+  displayName: Container registry login
+  inputs:
+    command: login
+    azureSubscriptionEndpoint: ${{ parameters.ascName }}
+    azureContainerRegistry: ${{ parameters.acrName }}
+
+- task: DownloadBuildArtifacts@0
+  displayName: 'Download Build Artifacts'
+  inputs:
+    artifactName: drop
+  condition: and(succeeded(), eq(variables['TestIntegration'], 'true'))
+
+- task: ms-devlabs.utilitytasks.task-Shellpp.Shell++@0
+  displayName: 'Pull and Retag recently built oryx build and runtime images for DockerHub'
+  inputs:
+    type: FilePath
+    scriptPath: ./vsts/scripts/pullandretag.sh
+    args: 
+      $(System.ArtifactsDirectory)/drop/images/build-images-acr.txt 
+      $(System.ArtifactsDirectory)/drop/images/runtime-images-acr.txt 
+      oryxprod
+  condition: and(succeeded(), eq(variables['TestIntegration'], 'true'))
+
+- task: ms-devlabs.utilitytasks.task-Shellpp.Shell++@0
+  displayName: 'Pull and Retag recently built oryx build and runtime images for MCR'
+  inputs:
+    type: FilePath
+    scriptPath: ./vsts/scripts/pullandretag.sh
+    args: 
+      $(System.ArtifactsDirectory)/drop/images/build-images-acr.txt 
+      $(System.ArtifactsDirectory)/drop/images/runtime-images-acr.txt 
+      'oryxmcr.azurecr.io/public/oryx'
+  condition: and(succeeded(), eq(variables['TestIntegration'], 'true'))
+
+- task: Docker@0
+  displayName: 'Push Build image to DockerHub'
+  inputs:
+    containerregistrytype: 'Container Registry'
+    dockerRegistryConnection: oryx
+    action: 'Push images'
+    imageNamesPath: '$(Build.ArtifactStagingDirectory)/images/build-images.txt'
+    includeLatestTag: false
+    enforceDockerNamingConvention: false
+  condition: and(succeeded(), eq(variables['PushBuildImages'], 'true'), eq(variables['BuildBuildImages'], 'true'), eq(variables['PushToDockerHub'], 'true'))
+
+- task: Docker@1
+  displayName: 'Push build images to ACR'
+  inputs:
+    azureSubscriptionEndpoint: ${{ parameters.ascName }}
+    azureContainerRegistry: ${{ parameters.acrName }}
+    command: 'Push an image'
+    pushMultipleImages: true
+    imageNamesPath: '$(Build.ArtifactStagingDirectory)/images/build-images-acr.txt'
+    includeLatestTag: false
+    enforceDockerNamingConvention: false
+  condition: and(succeeded(), eq(variables['PushBuildImages'], 'true'), eq(variables['BuildBuildImages'], 'true'))
+
+- task: Docker@0
+  displayName: 'Push runtime images to DockerHub'
+  inputs:
+    containerregistrytype: 'Container Registry'
+    dockerRegistryConnection: oryx
+    action: 'Push images'
+    imageNamesPath: '$(Build.ArtifactStagingDirectory)/images/runtime-images.txt'
+    includeLatestTag: false
+    enforceDockerNamingConvention: false
+  condition: and(succeeded(), eq(variables['PushRuntimeImages'], 'true'), eq(variables['BuildRuntimeImages'], 'true'), eq(variables['PushToDockerHub'], 'true'))
+
+- task: Docker@1
+  displayName: 'Push runtime images to ACR'
+  inputs:
+    azureSubscriptionEndpoint: ${{ parameters.ascName }}
+    azureContainerRegistry: ${{ parameters.acrName }}
+    command: 'Push an image'
+    pushMultipleImages: true
+    imageNamesPath: '$(Build.ArtifactStagingDirectory)/images/runtime-images-acr.txt'
+    includeLatestTag: false
+    enforceDockerNamingConvention: false
+  condition: and(succeeded(), eq(variables['PushRuntimeImages'], 'true'), eq(variables['BuildRuntimeImages'], 'true'))
+
+- task: ShellScript@2
+  displayName: 'Clean up Docker containers and images'
+  inputs:
+    scriptPath: ./vsts/scripts/dockerCleanup.sh
+  condition: or(eq(variables['TestBuildImages'], 'true'), eq(variables['TestRuntimeImages'], 'true'), eq(variables['TestIntegration'], 'true'))
+
+- task: ShellScript@2
+  displayName: 'Clean up Docker mounted directories'
+  inputs:
+    scriptPath: ./vsts/scripts/dockerArtifactsRemoval.sh
+  condition: or(eq(variables['TestBuildImages'], 'true'), eq(variables['TestRuntimeImages'], 'true'), eq(variables['TestIntegration'], 'true'))
+
+- task: ShellScript@2
+  displayName: 'Generate release notes'
+  inputs:
+    scriptPath: ./vsts/scripts/generate-release-notes.sh
+  condition: and(succeeded(), eq(variables['PushBuildImages'], 'true'), eq(variables['BuildBuildImages'], 'true'))
+
+- task: ArchiveFiles@2
+  displayName: 'Archive docker files and scripts for Oryx build and runtime images'
+  inputs:
+    rootFolderOrFile: images
+    archiveFile: '$(Build.ArtifactStagingDirectory)/images/dockerFiles.zip'
+  condition: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  condition: true
