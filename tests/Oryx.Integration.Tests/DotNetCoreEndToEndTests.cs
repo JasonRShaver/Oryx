@@ -1170,7 +1170,7 @@ namespace Microsoft.Oryx.Integration.Tests
                 .AddCommand($"mkdir -p {doesNotContainApp}")
                 .AddCommand(
                 $"oryx -appPath {doesNotContainApp} " +
-                $"-defaultAppFilePath {defaultAppDir}/output/foo.dll " +
+                $"-defaultAppFilePath {defaultAppDir}/output/{DefaultWebApp}.dll " +
                 $"-bindPort {ContainerPort}")
                 .AddCommand(DefaultStartupFilePath)
                 .ToString();
@@ -1195,8 +1195,10 @@ namespace Microsoft.Oryx.Integration.Tests
                 },
                 async (hostPort) =>
                 {
-                    var data = await _httpClient.GetStringAsync($"http://localhost:{hostPort}/");
-                    Assert.Contains("Running the defautl app", data);
+                    var data = await _httpClient.GetStringAsync($"http://localhost:{hostPort}/executingDir");
+                    Assert.Contains($"App is running from directory: {defaultAppDir}", data);
+                    data = await _httpClient.GetStringAsync($"http://localhost:{hostPort}/");
+                    Assert.Contains("Running default web app", data);
                 });
         }
     }

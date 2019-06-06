@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -24,6 +25,14 @@ namespace DefaultWebApp
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.Map(
+                new PathString("/executingDir"),
+                a => a.Run(async (context) =>
+                {
+                    await context.Response.WriteAsync(
+                        $"App is running from directory: {Directory.GetCurrentDirectory()}");
+                }));
 
             app.Run(async (context) =>
             {
