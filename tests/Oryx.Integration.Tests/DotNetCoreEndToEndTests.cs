@@ -23,6 +23,7 @@ namespace Microsoft.Oryx.Integration.Tests
         protected const string NetCoreApp21WebApp = "NetCoreApp21.WebApp";
         protected const string NetCoreApp22WebApp = "NetCoreApp22WebApp";
         protected const string NetCoreApp30WebApp = "NetCoreApp30.WebApp";
+        protected const string DefaultWebApp = "DefaultWebApp";
         protected const string NetCoreApp21MultiProjectApp = "NetCoreApp21MultiProjectApp";
         protected const string DefaultStartupFilePath = "./run.sh";
 
@@ -35,6 +36,11 @@ namespace Microsoft.Oryx.Integration.Tests
             _output = output;
             _hostSamplesDir = Path.Combine(Directory.GetCurrentDirectory(), "SampleApps");
             _tempRootDir = testTempDirTestFixture.RootDirPath;
+        }
+
+        protected DockerVolume CreateDefaultWebAppVolume()
+        {
+            return DockerVolume.CreateMirror(Path.Combine(_hostSamplesDir, "DotNetCore", DefaultWebApp));
         }
     }
 
@@ -810,6 +816,110 @@ namespace Microsoft.Oryx.Integration.Tests
                     Assert.Contains($"Location: {appOutputDir}/WebApp2.dll", data);
                 });
         }
+
+        [Fact]
+        public async Task CanRunApp_UsingDefaultApp_WhenHavingMultipleRuntimeConfigJsonFiles()
+        {
+            // Arrange
+            var appName = "MultiWebAppRepo";
+            var volume = DockerVolume.CreateMirror(Path.Combine(_hostSamplesDir, "DotNetCore", appName));
+            var appDir = volume.ContainerDir;
+            var appOutputDir = $"{appDir}/myoutputdir";
+            var defaultAppVolume = CreateDefaultWebAppVolume();
+            var defaultAppDir = defaultAppVolume.ContainerDir;
+            var buildImageScript = new ShellScriptBuilder()
+               .SetEnvironmentVariable("PROJECT", "src/WebApp1/WebApp1.csproj")
+               .AddCommand($"oryx build {appDir} -o {appOutputDir}")
+               .SetEnvironmentVariable("PROJECT", "src/WebApp2/WebApp2.csproj")
+               .AddCommand($"oryx build {appDir} -o {appOutputDir}")
+               .AddFileExistsCheck($"{appOutputDir}/MyWebApp.dll")
+               .AddFileExistsCheck($"{appOutputDir}/MyWebApp.runtimeconfig.json")
+               .AddFileExistsCheck($"{appOutputDir}/WebApp2.dll")
+               .AddFileExistsCheck($"{appOutputDir}/WebApp2.runtimeconfig.json")
+               // Create a default web app
+               .AddCommand($"cd {defaultAppDir} && dotnet publish -c Release -o {defaultAppDir}/output")
+               .ToString();
+            var runtimeImageScript = new ShellScriptBuilder()
+                .AddCommand(
+                $"oryx -appPath {appOutputDir} -defaultAppFilePath {defaultAppDir}/output/{DefaultWebApp}.dll " +
+                $"-bindPort {ContainerPort}")
+                .AddCommand(DefaultStartupFilePath)
+                .ToString();
+
+            await EndToEndTestHelper.BuildRunAndAssertAppAsync(
+                NetCoreApp21WebApp,
+                _output,
+                new List<DockerVolume> { volume, defaultAppVolume },
+                "/bin/sh",
+                new[]
+                {
+                    "-c",
+                    buildImageScript
+                },
+                $"oryxdevms/dotnetcore-2.1",
+                ContainerPort,
+                "/bin/sh",
+                new[]
+                {
+                    "-c",
+                    runtimeImageScript
+                },
+                async (hostPort) =>
+                {
+                    var data = await _httpClient.GetStringAsync($"http://localhost:{hostPort}/");
+                    Assert.Equal("Running default web app", data);
+                });
+        }
+
+        [Theory]
+        [InlineData("doestnotexist")]
+        [InlineData("./doestnotexist")]
+        [InlineData("dotnet doesnotexist.dll")]
+        public async Task CanRunApp_UsingDefaultApp_WhenStartupCommand_IsNotValid(string command)
+        {
+            // Arrange
+            var volume = DockerVolume.CreateMirror(Path.Combine(_hostSamplesDir, "DotNetCore", NetCoreApp21WebApp));
+            var appDir = volume.ContainerDir;
+            var appOutputDir = $"{appDir}/myoutputdir";
+            var defaultAppVolume = CreateDefaultWebAppVolume();
+            var defaultAppDir = defaultAppVolume.ContainerDir;
+            var buildImageScript = new ShellScriptBuilder()
+               .AddCommand($"oryx build {appDir} -o {appOutputDir}")
+               // Create a default web app
+               .AddCommand($"cd {defaultAppDir} && dotnet publish -c Release -o {defaultAppDir}/output")
+               .ToString();
+            var runtimeImageScript = new ShellScriptBuilder()
+                .AddCommand(
+                $"oryx -appPath {appOutputDir} -userStartupCommand \"{command}\" " +
+                $"-defaultAppFilePath {defaultAppDir}/output/{DefaultWebApp}.dll " +
+                $"-bindPort {ContainerPort}")
+                .AddCommand(DefaultStartupFilePath)
+                .ToString();
+
+            await EndToEndTestHelper.BuildRunAndAssertAppAsync(
+                NetCoreApp21WebApp,
+                _output,
+                new List<DockerVolume> { volume, defaultAppVolume },
+                "/bin/sh",
+                new[]
+                {
+                    "-c",
+                    buildImageScript
+                },
+                $"oryxdevms/dotnetcore-2.1",
+                ContainerPort,
+                "/bin/sh",
+                new[]
+                {
+                    "-c",
+                    runtimeImageScript
+                },
+                async (hostPort) =>
+                {
+                    var data = await _httpClient.GetStringAsync($"http://localhost:{hostPort}/");
+                    Assert.Equal("Running default web app", data);
+                });
+        }
     }
 
     [Trait("category", "dotnetcore")]
@@ -1046,25 +1156,21 @@ namespace Microsoft.Oryx.Integration.Tests
         }
 
         [Fact]
-        public async Task CanBuildAndRun_UsingDefaultAppPath()
+        public async Task CanBuildAndRun_UsingDefaultApp_WhenCannotFindAnyStartupFile()
         {
             // Arrange
-            var dotnetcoreVersion = "2.2";
-            var hostDir = Path.Combine(_hostSamplesDir, "DotNetCore", NetCoreApp22WebApp);
-            var volume = DockerVolume.CreateMirror(hostDir);
-            var appDir = volume.ContainerDir;
-            var appOutputDir = $"{appDir}/myoutputdir";
+            var defaultAppVolume = CreateDefaultWebAppVolume();
+            var defaultAppDir = defaultAppVolume.ContainerDir;
             var doesNotContainApp = "/tmp/does-not-contain-app";
-            var defaultApp = "/tmp/defaultApp";
             var buildImageScript = new ShellScriptBuilder()
-               .AddCommand($"oryx build {appDir} -l dotnet --language-version {dotnetcoreVersion} -o {appOutputDir}")
+               // create a default web app
+               .AddCommand($"cd {defaultAppDir} && dotnet publish -c Release -o {defaultAppDir}/output")
                .ToString();
             var runtimeImageScript = new ShellScriptBuilder()
-                .AddCommand($"mkdir -p {defaultApp}")
-                .AddCommand($"cp -rf {appOutputDir}/* {defaultApp}")
                 .AddCommand($"mkdir -p {doesNotContainApp}")
                 .AddCommand(
-                $"oryx -appPath {doesNotContainApp} -defaultAppFilePath {defaultApp}/{NetCoreApp22WebApp}.dll " +
+                $"oryx -appPath {doesNotContainApp} " +
+                $"-defaultAppFilePath {defaultAppDir}/output/foo.dll " +
                 $"-bindPort {ContainerPort}")
                 .AddCommand(DefaultStartupFilePath)
                 .ToString();
@@ -1072,14 +1178,14 @@ namespace Microsoft.Oryx.Integration.Tests
             await EndToEndTestHelper.BuildRunAndAssertAppAsync(
                 NetCoreApp22WebApp,
                 _output,
-                volume,
+                defaultAppVolume,
                 "/bin/sh",
                 new[]
                 {
                     "-c",
                     buildImageScript
                 },
-                $"oryxdevms/dotnetcore-{dotnetcoreVersion}",
+                $"oryxdevms/dotnetcore-2.1",
                 ContainerPort,
                 "/bin/sh",
                 new[]
@@ -1089,8 +1195,8 @@ namespace Microsoft.Oryx.Integration.Tests
                 },
                 async (hostPort) =>
                 {
-                    var data = await _httpClient.GetStringAsync($"http://localhost:{hostPort}/executingDir");
-                    Assert.Contains($"App is running from directory: {defaultApp}", data);
+                    var data = await _httpClient.GetStringAsync($"http://localhost:{hostPort}/");
+                    Assert.Contains("Running the defautl app", data);
                 });
         }
     }

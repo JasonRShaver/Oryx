@@ -54,30 +54,28 @@ isLinuxExecutable() {
 
 cd "$appPath"
 len=${#userStartUpCommand[@]}
+startupCommandString="${userStartUpCommand[@]}"
 if [ $len -ne 0 ]; then
+	echo "Trying to use provided startup command: $startupCommandString"
+	isValid=true
 	if [ $len -eq 1 ]; then
 		file="${userStartUpCommand[0]}"
-		if [ -f "$file" ]; then
-			startUpCommand="${userStartUpCommand[@]}"
-		else
-		  	echo "Could not find the startup file '$file' on disk."
+		if [ ! -f "$file" ]; then
+			isValid=false
+		  	echo "WARNING: Could not find the startup file '$file' on disk."
 		fi
 	elif [ $len -eq 2 ] && [ "${userStartUpCommand[0]}" == "dotnet" ]; then
-		if [ -f "${userStartUpCommand[1]}" ]; then
-		  	startUpCommand="${userStartUpCommand[@]}"
-		  	echo "Using the startup command '$startUpCommand' provided by the user to start the app."
-		else
-			echo "WARNING: Error in user provided startup command '${userStartUpCommand[@]}'."
+		if [ ! -f "${userStartUpCommand[1]}" ]; then
+			isValid=false
 			echo "WARNING: Could not find the file '${userStartUpCommand[1]}' on disk."
 		fi
-	else
-		startUpCommand="${userStartUpCommand[@]}"
-		echo "Using the startup command '$startUpCommand' provided by the user to start the app."
 	fi
-fi
 
-if [ -z "$startUpCommand" ]; then
-	echo Finding the startup file name...
+	if [ $isValid = true ]; then
+		startUpCommand="$startupCommandString"
+	fi
+else
+	echo "Startup command was not provided, finding the startup file name..."
 	runtimeConfigJsonFiles=()
 	for file in *; do
 		if [ -f "$file" ]; then
@@ -96,11 +94,14 @@ if [ -z "$startUpCommand" ]; then
 		startupExecutableFileName="$startupDllFileNamePrefix"
 		startupDllFileName="$startupDllFileNamePrefix.dll"
 	else
-		echo
 		echo "WARNING: Unable to find the startup dll file name."
 		echo "WARNING: Expected to find only one file with extension 'runtimeconfig.json' but found $fileCount"
-		echo "WARNING: Found files: ${runtimeConfigJsonFiles[@]}"
-		echo "WARNING: To fix this issue you can set the startup command to point to a particular startup file, for example: 'dotnet myapp.dll'"
+
+		if [ $fileCount -gt 1 ]; then
+			echo "WARNING: Found files: ${runtimeConfigJsonFiles[@]}"
+			echo "WARNING: To fix this issue you can set the startup command to point to a particular startup file"
+			echo "         For example: 'dotnet myapp.dll'"
+		fi
 	fi
 
 	if [ -f "$startupExecutableFileName" ]; then
@@ -118,7 +119,7 @@ if [ -z "$startUpCommand" ]; then
 		fi
 	fi
 
-	if [ -z "$startUpCommand" ]; then
+	if [ -z "$startUpCommand" ] && [ ! -z "$startupDllFileName" ]; then
 		if [ -f "$startupDllFileName" ]; then
 			echo "Found the startup file '$startupDllFileName'"
 			startUpCommand="dotnet '$startupDllFileName'"
@@ -129,15 +130,21 @@ if [ -z "$startUpCommand" ]; then
 fi
 
 if [ -z "$startUpCommand" ]; then
-	echo "Could not generate a startup command to start the app. Trying to use the default app instead..."
-	if [ -f "$defaultAppFilePath" ]; then
-		cd "$defaultAppFileDir"
-		startUpCommand="dotnet '$defaultAppFilePath'"
+	echo "Trying to run the default app instead..."
+	if [ ! -z "$defaultAppFilePath" ]; then
+		if [ -f "$defaultAppFilePath" ]; then
+			cd "$defaultAppFileDir"
+			startUpCommand="dotnet '$defaultAppFilePath'"
+		else
+			echo "Could not find the default app file '$defaultAppFilePath'"
+		fi
 	else
-		echo "Could not find the default app file '$defaultAppFilePath'"
-		echo Unable to start the application.
-		exit 1
+		echo "Default app was not provided. Unable to start the application."
 	fi
+fi
+
+if [ -z "$startUpCommand" ]; then
+	exit 1
 fi
 
 echo "Running the command '$startUpCommand'..."
