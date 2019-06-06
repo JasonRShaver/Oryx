@@ -46,7 +46,7 @@ func main() {
 		absPath, err := filepath.Abs(providedPath)
 		if err != nil || !common.PathExists(absPath) {
 			fmt.Printf("Provided app path '%s' is not valid or does not exist.\n", providedPath)
-			return
+			os.Exit(1)
 		}
 		fullAppPath = absPath
 	}
