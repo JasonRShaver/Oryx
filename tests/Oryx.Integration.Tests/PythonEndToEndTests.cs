@@ -71,7 +71,7 @@ namespace Microsoft.Oryx.Integration.Tests
                 volume,
                 "/bin/bash",
                 new[] { "-c", buildScript },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -114,7 +114,7 @@ namespace Microsoft.Oryx.Integration.Tests
                 volume,
                 "/bin/bash",
                 new[] { "-c", buildScript },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -164,7 +164,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-2.7",
+                "oryxdevms/python:2.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -208,7 +208,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-2.7",
+                "oryxdevms/python:2.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -257,7 +257,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -298,7 +298,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -353,7 +353,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -394,7 +394,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -453,7 +453,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -511,7 +511,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.6",
+                "oryxdevms/python:3.6-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -551,7 +551,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -597,7 +597,7 @@ namespace Microsoft.Oryx.Integration.Tests
                 volume,
                 "/bin/bash",
                 new[] { "-c", buildScript },
-                $"oryxdevms/python-{pythonVersion}",
+                $"oryxdevms/python:{pythonVersion}-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[] { "-c", runScript },
@@ -652,7 +652,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.6",
+                "oryxdevms/python:3.6-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -701,7 +701,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.6",
+                "oryxdevms/python:3.6-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -757,7 +757,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -811,7 +811,7 @@ namespace Microsoft.Oryx.Integration.Tests
                 .AddCommand($"oryx -appPath {appDir} -bindPort {ContainerPort}")
                 .AddCommand(DefaultStartupFilePath)
                 .ToString();
-            var imageVersion = "oryxdevms/python-" + pythonVersion;
+            var imageVersion = "oryxdevms/python:" + pythonVersion + "-latest";
 
             await EndToEndTestHelper.BuildRunAndAssertAppAsync(
                 appName,
@@ -855,7 +855,7 @@ namespace Microsoft.Oryx.Integration.Tests
                 .AddCommand($"oryx -appPath {appDir} -bindPort {ContainerPort}")
                 .AddCommand(DefaultStartupFilePath)
                 .ToString();
-            var imageVersion = "oryxdevms/python-" + pythonVersion;
+            var imageVersion = "oryxdevms/python:" + pythonVersion + "-latest";
 
             await EndToEndTestHelper.BuildRunAndAssertAppAsync(
                 appName,
@@ -917,7 +917,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]
@@ -958,7 +958,7 @@ namespace Microsoft.Oryx.Integration.Tests
                     "-c",
                     buildScript
                 },
-                "oryxdevms/python-3.7",
+                "oryxdevms/python:3.7-latest",
                 ContainerPort,
                 "/bin/bash",
                 new[]

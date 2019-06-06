@@ -64,7 +64,7 @@ namespace Microsoft.Oryx.Integration.Tests
             await EndToEndTestHelper.BuildRunAndAssertAppAsync(
                 appName, _output, volume,
                 "/bin/sh", new[] { "-c", buildScript },
-                $"oryxdevms/php-{phpVersion}",
+                $"oryxdevms/php:{phpVersion}-latest",
                 ContainerPort,
                 "/bin/sh", new[] { "-c", runScript },
                 async (hostPort) =>
@@ -118,7 +118,7 @@ namespace Microsoft.Oryx.Integration.Tests
             await EndToEndTestHelper.BuildRunAndAssertAppAsync(
                 appName, _output, volume,
                 "/bin/sh", new[] { "-c", buildScript },
-                $"oryxdevms/php-{phpVersion}",
+                $"oryxdevms/php:{phpVersion}-latest",
                 ContainerPort,
                 "/bin/sh", new[] { "-c", runScript },
                 async (hostPort) =>
@@ -161,7 +161,7 @@ namespace Microsoft.Oryx.Integration.Tests
             await EndToEndTestHelper.BuildRunAndAssertAppAsync(
                 appName, _output, volume,
                 "/bin/sh", new[] { "-c", buildScript },
-                $"oryxdevms/php-{phpVersion}",
+                $"oryxdevms/php:{phpVersion}-latest",
                 ContainerPort,
                 "/bin/sh", new[] { "-c", runScript },
                 async (hostPort) =>

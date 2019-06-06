@@ -49,7 +49,7 @@ while read sourceImage; do
 		docker pull "$sourceImage" | sed 's/^/     /'
         
 		# Trim the build number tag and append the '':latest' to end of it
-		newtag="${sourceImage%:*}:latest"
+		newtag="$(echo $sourcetag | cut -d'-' -f 1)-latest"
 
 		# Replace the ACR registry repository name with a name that the tests know about
 		newtag=$(echo "$newtag" | sed 's,oryxdevmcr.azurecr.io/public/oryx,oryxdevms,g')

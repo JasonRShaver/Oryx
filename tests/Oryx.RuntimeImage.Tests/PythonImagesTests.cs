@@ -35,7 +35,7 @@ namespace Microsoft.Oryx.RuntimeImage.Tests
             // Act
             var result = _dockerCli.Run(new DockerRunArguments
             {
-                ImageId = "oryxdevms/python-" + version + ":latest",
+                ImageId = "oryxdevms/python:" + version + "-latest",
                 CommandToExecuteOnRun = "oryx",
                 CommandArguments = new[] { " " }
             });
@@ -61,7 +61,7 @@ namespace Microsoft.Oryx.RuntimeImage.Tests
             // Arrange & Act
             var result = _dockerCli.Run(new DockerRunArguments
             {
-                ImageId = "oryxdevms/python-" + pythonVersion + ":latest",
+                ImageId = "oryxdevms/python:" + pythonVersion + "-latest",
                 CommandToExecuteOnRun = "python",
                 CommandArguments = new[] { "--version" }
             });
@@ -86,7 +86,7 @@ namespace Microsoft.Oryx.RuntimeImage.Tests
             // Arrange & Act
             var result = _dockerCli.Run(new DockerRunArguments
             {
-                ImageId = "oryxdevms/python-" + pythonVersion + ":latest",
+                ImageId = "oryxdevms/python:" + pythonVersion + "-latest",
                 CommandToExecuteOnRun = "python",
                 CommandArguments = new[] { "--version" }
             });
@@ -120,7 +120,7 @@ namespace Microsoft.Oryx.RuntimeImage.Tests
             // Act
             var result = _dockerCli.Run(new DockerRunArguments
             {
-                ImageId = "oryxdevms/python-3.7",
+                ImageId = "oryxdevms/python:3.7-latest",
                 CommandToExecuteOnRun = "/bin/sh",
                 CommandArguments = new[] { "-c", script }
             });

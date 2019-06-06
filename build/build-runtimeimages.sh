@@ -121,10 +121,10 @@ for dockerFile in $dockerFiles; do
     # add new content
     echo
     echo "Updating artifacts file with the built runtime image information..."
-    echo "$dockerHubRuntimeImageTagNameRepo:latest" >> $RUNTIME_IMAGES_ARTIFACTS_FILE
-    echo "$dockerHubRuntimeImageTagNameRepo:$uniqueTag" >> $RUNTIME_IMAGES_ARTIFACTS_FILE
-    echo "$acrRuntimeImageTagNameRepo:latest" >> $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
-    echo "$acrRuntimeImageTagNameRepo:$uniqueTag" >> $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
+    echo "$dockerHubRuntimeImageTagNameRepo-latest" >> $RUNTIME_IMAGES_ARTIFACTS_FILE
+    echo "$dockerHubRuntimeImageTagNameRepo-$uniqueTag" >> $RUNTIME_IMAGES_ARTIFACTS_FILE
+    echo "$acrRuntimeImageTagNameRepo-latest" >> $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
+    echo "$acrRuntimeImageTagNameRepo-$uniqueTag" >> $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE
 
     cd $RUNTIME_IMAGES_SRC_DIR
 done
