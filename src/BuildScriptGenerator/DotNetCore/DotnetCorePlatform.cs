@@ -113,21 +113,21 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
             string projectFile,
             IDictionary<string, string> buildProperties)
         {
-            string startupFileNamePrefix;
+            string startupDllFileName;
             var projectFileContent = context.SourceRepo.ReadFile(projectFile);
             var projFileDoc = XDocument.Load(new StringReader(projectFileContent));
             var assemblyNameElement = projFileDoc.XPathSelectElement(DotNetCoreConstants.AssemblyNameXPathExpression);
             if (assemblyNameElement == null)
             {
                 var name = Path.GetFileNameWithoutExtension(projectFile);
-                startupFileNamePrefix = $"{name}.dll";
+                startupDllFileName = $"{name}.dll";
             }
             else
             {
-                startupFileNamePrefix = $"{assemblyNameElement.Value}.dll";
+                startupDllFileName = $"{assemblyNameElement.Value}.dll";
             }
 
-            buildProperties[DotNetCoreManifestFilePropertyKeys.StartupDllFileName] = startupFileNamePrefix;
+            buildProperties[DotNetCoreManifestFilePropertyKeys.StartupDllFileName] = startupDllFileName;
         }
 
         public bool IsCleanRepo(ISourceRepo repo)
