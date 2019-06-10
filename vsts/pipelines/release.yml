@@ -3,14 +3,13 @@ resources:
 
 variables:
 - group: Oryx
+- skipComponentGovernanceDetection: true
 
 jobs:
 - job: Release_BuildImage
   displayName: Release Build Image to MCR and DockerHub
   pool:
     name: OryxLinux
-  variables:
-    skipComponentGovernanceDetection: true
 
   steps:
   - script: |
@@ -24,8 +23,6 @@ jobs:
   displayName: Release Runtime Images to MCR and DockerHub
   pool:
     name: OryxLinux
-  variables:
-    skipComponentGovernanceDetection: true
 
   steps:
   - script: |

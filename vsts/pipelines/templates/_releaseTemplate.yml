@@ -27,10 +27,16 @@ steps:
     azureSubscriptionEndpoint: ${{ parameters.ascName }}
     azureContainerRegistry: ${{ parameters.acrName }}
 
-- task: DownloadBuildArtifacts@0
-  displayName: 'Download Build Artifacts'
+- task: DownloadPipelineArtifact@1
+  displayName: 'Download Pipeline Artifact'
   inputs:
+    buildType: specific
+    project: '0bdbc590-a062-4c3f-b0f6-9383f67865ee'
+    pipeline: 11021
+    specificBuildWithTriggering: true
     artifactName: drop
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+  #condition: and(succeeded(), or(in(variables['SIGNTYPE'], 'real', 'Real'), in(variables['SignType'], 'real', 'Real')))
   condition: true
 
 - task: ms-devlabs.utilitytasks.task-Shellpp.Shell++@0

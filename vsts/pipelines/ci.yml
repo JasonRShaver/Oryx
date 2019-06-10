@@ -22,6 +22,7 @@ jobs:
     - visualstudio
   variables:
     SignType: 'test'
+    skipComponentGovernanceDetection: true
   steps:
   - template: templates/_signbinary.yml
 
@@ -33,6 +34,7 @@ jobs:
     name: OryxLinux
   variables:
     SignType: $[ dependencies.Job_SignBinaries.outputs['setSignTypeVariable.SignType'] ]  # map in the signtype variable
+    skipComponentGovernanceDetection: true
 
   steps:
   - script: |
@@ -57,6 +59,8 @@ jobs:
     name: OryxLinux
   variables:
     SignType: $[ dependencies.Job_SignBinaries.outputs['setSignTypeVariable.SignType'] ]  # map in the signtype variable
+    skipComponentGovernanceDetection: true
+
   # Building runtime images can take a long time due to PHP images
   timeoutInMinutes: 100
   steps:

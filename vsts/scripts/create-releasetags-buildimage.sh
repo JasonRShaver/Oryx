@@ -40,4 +40,4 @@ while read sourceImage; do
     echo -------------------------------------------------------------------------------
   fi
 #done <"$1"
-done <"$(Build.StagingDirectory)/drop/images/build-images-acr.txt"
+done <"$(Build.ArtifactStagingDirectory)/drop/images/build-images-acr.txt"

@@ -49,4 +49,4 @@ while read sourceImage; do
     docker tag "$sourceImage" "$dockerHubSpecific"
     echo -------------------------------------------------------------------------------
   fi
-done <"$(Build.StagingDirectory)/drop/images/runtime-images-acr.txt"
+done <"$(Build.ArtifactStagingDirectory)/drop/images/runtime-images-acr.txt"
